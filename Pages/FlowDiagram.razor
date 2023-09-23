@@ -6,24 +6,39 @@
 <div class="container">
     <div class="item_menu">
         <button class="btn btn-primary" @onclick="Clear">Clear</button>
-        <button class="btn btn-primary" @onclick="() => Diagram.ZoomToFit(10)">Zoom to fit</button>
+        <button class="btn btn-primary" @onclick="Template">Template</button>
+        <button class="btn btn-primary" @onclick="() => Diagram.ZoomToFit(10)" style="width: 240px;">Zoom to fit</button>
+        <button class="btn btn-primary" @onclick="ReconnectLinks" style="width: 260px;">Reconnect Links</button>
+        @* <span>Zoom Level : @ZoomLevel</span> *@
+
+        <div class="badges">
+            @if (IsDiagramValid)
+            {
+                <span class="badge text-bg-success rounded-pill">Valid Diagram</span>
+            }
+            else
+            {
+                <span class="badge text-bg-danger rounded-pill">Invalid Diagram</span>
+            }
+        </div>
+
     </div>
     <div>
     </div>
     <div class="item_elements">
-        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Start)">
+        <div draggable="true" @ondblclick="() => OnElementDblClick(Enumerators.ShapeType.Start)" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Start)">
             <img class="element_image" src="images/start.svg" />
         </div>
-        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Rectangle)">
+        <div draggable="true" @ondblclick="() => OnElementDblClick(Enumerators.ShapeType.Rectangle)" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Rectangle)">
             <img class="element_image" src="images/rectangle.svg" />
         </div>
-        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Triangle)">
+        <div draggable="true" @ondblclick="() => OnElementDblClick(Enumerators.ShapeType.Triangle)" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Triangle)">
             <img class="element_image" src="images/triangle.svg" />
         </div>
-        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Diamond)">
+        <div draggable="true" @ondblclick="() => OnElementDblClick(Enumerators.ShapeType.Diamond)" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Diamond)">
             <img class="element_image" src="images/diamond.svg" />
         </div>
-        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.End)">
+        <div draggable="true" @ondblclick="() => OnElementDblClick(Enumerators.ShapeType.End)" @ondragstart="() => OnDragStart(Enumerators.ShapeType.End)">
             <img class="element_image" src="images/end.svg" />
         </div>
     </div>
@@ -40,7 +55,14 @@
         <label>Properties</label>
     </div>
     <div class="item_output">
-        <label>Output</label>
+        @if(IsDiagramValid)
+        {
+            
+        }
+        else
+        {
+            <textarea class="error_text">@ValidationReason</textarea>
+        }
     </div>
 </div>
 
@@ -103,5 +125,17 @@
     .element_image {
         width: 100px;
         height: 60px;
+    }
+
+    .badges {
+        align-self: center;
+        width: 100%;
+        text-align: end;
+    }
+
+    .error_text{
+        width: 100%;
+        background-color: lightpink;
+        height: 100%;
     }
 </style>

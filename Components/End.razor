@@ -64,13 +64,20 @@
 </svg>
 
 <PortRenderer @key="'l'" Port="Node.GetPort(PortAlignment.Left)">
-    <circle cx="0" cy="30" r="7"></circle>
+    <circle cx="0" cy="30" r="7" stroke="gray" stroke-width="1" fill="none"></circle>
 </PortRenderer>
 
 <PortRenderer @key="'r'" Port="Node.GetPort(PortAlignment.Right)">
-    <circle cx="100" cy="30" r="7"></circle>
+    <circle cx="100" cy="30" r="7" stroke="gray" stroke-width="1" fill="none"></circle>
 </PortRenderer>
 
+<PortRenderer @key="'t'" Port="Node.GetPort(PortAlignment.Top)">
+    <circle cx="50" cy="10" r="7" stroke="gray" stroke-width="1" fill="none"></circle>
+</PortRenderer>
+
+<PortRenderer @key="'b'" Port="Node.GetPort(PortAlignment.Bottom)">
+    <circle cx="50" cy="50" r="7" stroke="gray" stroke-width="1" fill="none"></circle>
+</PortRenderer>
 
 @code {
     [Parameter]
@@ -79,3 +86,9 @@
         get; set;
     }
 }
+
+<style>
+    svg circle:hover {
+        fill: black;
+    }
+</style>

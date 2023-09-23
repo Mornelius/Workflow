@@ -8,7 +8,8 @@
             End = 1,
             Diamond = 2,
             Rectangle = 3,
-            Triangle = 4        
+            Triangle = 4,
+            Normal = 5,
         }
     }
 }

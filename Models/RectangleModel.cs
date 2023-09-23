@@ -8,9 +8,20 @@ namespace Workflow.Models
     {
         public RectangleModel(Point position = null) : base(position) { }
 
-        public string Label
+        public int PositionOffSetX
         {
-            get; set;
-        } = "";
+            get
+            {
+                return -50;
+            }
+        }
+
+        public int PositionOffSetY
+        {
+            get
+            {
+                return -30;
+            }
+        }
     }
 }
