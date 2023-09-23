@@ -69,6 +69,7 @@ namespace Workflow.Pages
             Diagram.Nodes.Added += Nodes_Added;
             Diagram.Nodes.Removed += Nodes_Removed;
             Diagram.Links.Removed += Links_Removed;
+            Diagram.Changed += Diagram_Changed;
 
             // We created new custom shapes - they need to be registered on the canvas before they can be used
             Diagram.RegisterComponent<StartModel, Start>();
@@ -133,6 +134,12 @@ namespace Workflow.Pages
             Diagram.Nodes.Added -= Nodes_Added;
             Diagram.Nodes.Removed -= Nodes_Removed;
             Diagram.Links.Removed -= Links_Removed;
+            Diagram.Changed -= Diagram_Changed;
+        }
+
+        private void Diagram_Changed()
+        {
+            ValidateDiagram();
         }
 
         private void Diagram_ZoomChanged()
@@ -300,7 +307,6 @@ namespace Workflow.Pages
             if (startCount == 1 && endCount == 1)
             {
                 IsDiagramValid = true;
-                ValidationReason = "Diagram is valid";
             }
             else
             {
@@ -329,7 +335,17 @@ namespace Workflow.Pages
 
             foreach (NodeModel node in Diagram.Nodes)
             {
-                if (node.Links.Count == 0)
+                int linked = 0;
+
+                foreach (PortModel port in node.Ports)
+                {
+                    if (port.Links.Count > 0)
+                    {
+                        linked++;
+                    }
+                }
+
+                if (linked == 0)
                 {
                     IsDiagramValid = false;
                     ValidationReason = ValidationReason + "All nodes must have at least one link." + Environment.NewLine;
@@ -345,6 +361,11 @@ namespace Workflow.Pages
                     ValidationReason = ValidationReason + "All links must have a start and end element." + Environment.NewLine;
                     break;
                 }
+            }
+
+            if(IsDiagramValid)
+            {
+                ValidationReason = "Diagram is valid";
             }
 
             StateHasChanged();
