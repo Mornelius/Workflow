@@ -1,0 +1,79 @@
+﻿<svg width="100px"
+     height="60px"
+     viewBox="0 0 162.06949 93.266403"
+     version="1.1"
+     id="svg1"
+     sodipodi:docname="rectangle.svg"
+     inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:svg="http://www.w3.org/2000/svg">
+    <sodipodi:namedview id="namedview1"
+                        pagecolor="#ffffff"
+                        bordercolor="#000000"
+                        borderopacity="0.25"
+                        inkscape:showpageshadow="2"
+                        inkscape:pageopacity="0.0"
+                        inkscape:pagecheckerboard="0"
+                        inkscape:deskcolor="#d1d1d1"
+                        inkscape:document-units="mm"
+                        inkscape:zoom="0.69219276"
+                        inkscape:cx="375.61791"
+                        inkscape:cy="110.51835"
+                        inkscape:window-width="1920"
+                        inkscape:window-height="991"
+                        inkscape:window-x="-9"
+                        inkscape:window-y="-9"
+                        inkscape:window-maximized="1"
+                        inkscape:current-layer="layer1"
+                        showgrid="false" />
+    <defs id="defs1" />
+    <g inkscape:label="Layer 1"
+       inkscape:groupmode="layer"
+       id="layer1"
+       transform="translate(-5.7147427,-119.15832)">
+        <rect style="fill:#cccccc;stroke-width:0.321875"
+              id="rect3-5-7"
+              width="162.06949"
+              height="93.266403"
+              x="5.7147427"
+              y="119.15832" />
+        <rect style="fill:#f9f9f9;stroke-width:0.315806"
+              id="rect3-5"
+              width="161.30502"
+              height="90.208488"
+              x="6.1089778"
+              y="119.38277" />
+        <rect style="fill:#0000ff;stroke-width:0.283679"
+              id="rect3"
+              width="149.83783"
+              height="78.35907"
+              x="11.467181"
+              y="125.37452" />
+    </g>
+</svg>
+
+<PortRenderer @key="'l'" Port="Node.GetPort(PortAlignment.Left)">
+    <circle cx="0" cy="30" r="7"></circle>
+</PortRenderer>
+
+<PortRenderer @key="'r'" Port="Node.GetPort(PortAlignment.Right)">
+    <circle cx="100" cy="30" r="7"></circle>
+</PortRenderer>
+
+<PortRenderer @key="'t'" Port="Node.GetPort(PortAlignment.Top)">
+    <circle cx="50" cy="0" r="7"></circle>
+</PortRenderer>
+
+<PortRenderer @key="'b'" Port="Node.GetPort(PortAlignment.Bottom)">
+    <circle cx="50" cy="60" r="7"></circle>
+</PortRenderer>
+
+@code {
+    [Parameter]
+    public RectangleModel Node
+    {
+        get; set;
+    }
+}

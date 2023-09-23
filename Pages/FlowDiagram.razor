@@ -1,0 +1,107 @@
+﻿@page "/"
+
+@using Blazor.Diagrams.Components
+@using Workflow.Components
+
+<div class="container">
+    <div class="item_menu">
+        <button class="btn btn-primary" @onclick="Clear">Clear</button>
+        <button class="btn btn-primary" @onclick="() => Diagram.ZoomToFit(10)">Zoom to fit</button>
+    </div>
+    <div>
+    </div>
+    <div class="item_elements">
+        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Start)">
+            <img class="element_image" src="images/start.svg" />
+        </div>
+        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Rectangle)">
+            <img class="element_image" src="images/rectangle.svg" />
+        </div>
+        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Triangle)">
+            <img class="element_image" src="images/triangle.svg" />
+        </div>
+        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.Diamond)">
+            <img class="element_image" src="images/diamond.svg" />
+        </div>
+        <div draggable="true" @ondragstart="() => OnDragStart(Enumerators.ShapeType.End)">
+            <img class="element_image" src="images/end.svg" />
+        </div>
+    </div>
+    <div class="item_diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
+        <CascadingValue Value="Diagram" IsFixed="true">
+            <DiagramCanvas>
+                <Widgets>
+                    <SelectionBoxWidget />
+                </Widgets>
+            </DiagramCanvas>
+        </CascadingValue>
+    </div>
+    <div class="item_properties">
+        <label>Properties</label>
+    </div>
+    <div class="item_output">
+        <label>Output</label>
+    </div>
+</div>
+
+<style>
+    .container {
+        display: grid;
+        height: 100%;
+        max-width: 100vw;
+        width: 100% !important;
+        grid-template-columns: 10% 75% 15%;
+        grid-template-rows: 40px 75% 25%;
+    }
+
+    .item_menu {
+        display: flex;
+        flex-direction: row;
+        column-gap: 20px;
+        grid-column: 1 / span 3;
+        grid-row: 1;
+        border-style: solid;
+        border-width: 1px;
+        padding: 2px;
+    }
+
+    .item_elements {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        row-gap: 20px;
+        grid-column: 1;
+        grid-row: 2;
+        border-style: solid;
+        border-width: 1px;
+        padding: 2px;
+    }
+
+    .item_diagram {
+        grid-column: 2;
+        grid-row: 2;
+        border-style: solid;
+        border-width: 1px;
+    }
+
+    .item_properties {
+        grid-column: 3;
+        grid-row: 2;
+        border-style: solid;
+        border-width: 1px;
+        padding: 2px;
+    }
+
+    .item_output {
+        grid-column: 1 / span 3;
+        grid-row: 3;
+        border-style: solid;
+        border-width: 1px;
+        padding: 2px;
+    }
+
+    .element_image {
+        width: 100px;
+        height: 60px;
+    }
+</style>
