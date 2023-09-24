@@ -11,14 +11,19 @@
         <button class="btn btn-primary" @onclick="ReconnectLinks" style="width: 260px;">Reconnect Links</button>
         @* <span>Zoom Level : @ZoomLevel</span> *@
 
+
         <div class="badges">
             @if (IsDiagramValid)
             {
-                <span class="badge text-bg-success rounded-pill">Valid Diagram</span>
+                <Tooltip Title=@ValidationReason Placement="TooltipPlacement.Left" CustomClass="custom-tooltip-valid" Html="true">
+                    <span class="badge text-bg-success rounded-pill">Valid Diagram</span>
+                </Tooltip>
             }
             else
             {
-                <span class="badge text-bg-danger rounded-pill">Invalid Diagram</span>
+                <Tooltip Title=@ValidationReason Placement="TooltipPlacement.Left" CustomClass="custom-tooltip-invalid" Html="true">
+                    <span class="badge text-bg-danger rounded-pill">Invalid Diagram</span>
+                </Tooltip>
             }
         </div>
 
@@ -52,17 +57,26 @@
         </CascadingValue>
     </div>
     <div class="item_properties">
-        <label>Properties</label>
+        <label class="property_title">ID:</label>
+        <InputText @ref=propID class="property_value" type="text" @bind-Value="@ID" readonly />
+        <br />
+        <label class="property_title">Name:</label>
+        <InputText @ref=propName class="property_value" type="text" @bind-Value="@Name" />
+        <br />
+        <label class="property_title">Description:</label>
+        <InputTextArea @ref=propDescription class="property_value" @bind-Value="@Description"></InputTextArea>
+        @* <br />
+        <label class="property_title">X Position:</label>
+        <input class="property_value" type="number" @bind-value=PosX/>
+        <label class="property_title">Y Position:</label>
+        <input class="property_value" type="number" @bind-value=PosY />
+        <br />
+        <label class="property_title">Width:</label>
+        <input class="property_value" type="number" @bind-value=Width/>
+        <label class="property_title">Height:</label>
+        <input class="property_value" type="number" @bind-value=Height /> *@
     </div>
     <div class="item_output">
-        @if(IsDiagramValid)
-        {
-            
-        }
-        else
-        {
-            <textarea class="error_text">@ValidationReason</textarea>
-        }
     </div>
 </div>
 
@@ -72,7 +86,7 @@
         height: 100%;
         max-width: 100vw;
         width: 100% !important;
-        grid-template-columns: 10% 75% 15%;
+        grid-template-columns: 10% 70% 20%;
         grid-template-rows: 40px 75% 25%;
     }
 
@@ -112,6 +126,8 @@
         border-style: solid;
         border-width: 1px;
         padding: 2px;
+        display: flex;
+        flex-direction: column;
     }
 
     .item_output {
@@ -133,9 +149,40 @@
         text-align: end;
     }
 
-    .error_text{
+    .error_text {
         width: 100%;
         background-color: lightpink;
         height: 100%;
+    }
+
+    .custom-tooltip-valid {
+        --bs-tooltip-bg: lightgreen;
+        --bs-tooltip-color: darkgreen;
+    }
+
+    .custom-tooltip-invalid {
+        --bs-tooltip-bg: pink;
+        --bs-tooltip-color: red;
+    }
+
+    .tooltip-inner {
+        text-align: left;
+        max-width: 300px;
+        width: 300px;
+    }
+
+    svg text {
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+
+    .property_title{
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .property_value {
+        font-size: 0.8rem;
+        font-weight: 400;
     }
 </style>

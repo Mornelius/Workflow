@@ -23,5 +23,10 @@ namespace Workflow.Models
                 return -30;
             }
         }
+        public string Label
+        {
+            get;
+            set;
+        } = "";
     }
 }
