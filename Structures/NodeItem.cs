@@ -14,6 +14,7 @@ namespace Workflow.Structures
             Type = Enumerators.ShapeType.Normal;
             Name = id;
             Description = id;
+            Label = "";
         }
 
         public NodeItem(string id, Enumerators.ShapeType type)
@@ -22,6 +23,7 @@ namespace Workflow.Structures
             Type = type;
             Name = id;
             Description = id;
+            Label = "";
         }
 
         public NodeItem(string id, Enumerators.ShapeType type, string name)
@@ -30,6 +32,7 @@ namespace Workflow.Structures
             Type = type;
             Name = name;
             Description = name;
+            Label = "";
         }
 
         public NodeItem(string id, Enumerators.ShapeType type, string name, string desription)
@@ -38,7 +41,18 @@ namespace Workflow.Structures
             Type = type;
             Name = name;
             Description = desription;
+            Label = "";
         }
+
+        public NodeItem(string id, Enumerators.ShapeType type, string name, string desription, string label)
+        {
+            ID = id;
+            Type = type;
+            Name = name;
+            Description = desription;
+            Label = label;
+        }
+
 
         public string ID
         {
@@ -59,6 +73,12 @@ namespace Workflow.Structures
         }
 
         public string Description
+        {
+            get;
+            set;
+        }
+
+        public string Label
         {
             get;
             set;

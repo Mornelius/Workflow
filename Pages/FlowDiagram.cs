@@ -1,34 +1,24 @@
 ﻿
 using Blazor.Diagrams;
 using Blazor.Diagrams.Algorithms;
-using Blazor.Diagrams.Core;
-using Blazor.Diagrams.Core.Anchors;
 using Blazor.Diagrams.Core.Geometry;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Models.Base;
-using Blazor.Diagrams.Core.Options;
 using Blazor.Diagrams.Core.PathGenerators;
 using Blazor.Diagrams.Core.Routers;
-using Blazor.Diagrams.Models;
 using Blazor.Diagrams.Options;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
-using System.Xml.Linq;
 using Workflow.Components;
 using Workflow.Models;
 using Workflow.Structures;
 using static Workflow.Structures.Enumerators;
 
+
 namespace Workflow.Pages
 {
     public partial class FlowDiagram
     {
-        private InputText propID;
-        private InputText propName;
-        private InputTextArea propDescription;
-
-
         private bool IsDiagramValid
         {
             get; set;
@@ -44,81 +34,16 @@ namespace Workflow.Pages
             get; set;
         } = 0;
 
-        // Properties
-        private string ID
+        NodeItem? nodeItem
         {
             get; set;
         }
-
-        private string name = "";
-        private string Name
-        {
-            get
-            {
-                return name;
-            }
-            set
-            {
-                name = value;
-                foreach (NodeItem node in nodes)
-                {
-                    if (node.ID == propID.Value)
-                    {
-                        node.Name = name;
-                        break;
-                    }
-                }
-            }
-        }
-
-
-        private string description = "";
-        private string Description
-        {
-            get
-            {
-                return description;
-            }
-            set
-            {
-                description = value;
-                foreach (NodeItem node in nodes)
-                {
-                    if (node.ID == propName.Value)
-                    {
-                        node.Description = description;
-                        break;
-                    }
-                }
-            }
-        }
-
-        private double PosX
-        {
-            get; set; 
-        }
-
-        private double PosY
-        {
-            get; set;
-        }
-
-        private double Width
-        {
-            get; set;
-        }
-
-        private double Height
-        {
-            get; set;
-        }
-
+        = new NodeItem();
 
         private const int defaultX = 400;
         private const int defaultY = 200;
 
         private int nodeCounter = 0; // Keep kount of the number of nodes
-        private List<NodeItem> nodes = new List<NodeItem>();
 
         private BlazorDiagram Diagram = null;
 
@@ -141,6 +66,7 @@ namespace Workflow.Pages
             },
             };
 
+            // Setup event handlers
             Diagram = new BlazorDiagram(options);
             Diagram.ZoomChanged += Diagram_ZoomChanged;
             Diagram.Links.Added += Links_Added;
@@ -161,61 +87,39 @@ namespace Workflow.Pages
             ValidateDiagram();
         }
 
+        /// <summary>
+        /// Update the properties when a new node is selected
+        /// </summary>
+        /// <param name="obj"></param>
         private void Diagram_SelectionChanged(SelectableModel obj)
         {
-            ID = "";
-            Name = "";
-            Description = "";
-            PosX = 0;
-            PosY = 0;
-            Width = 0;
-            Height = 0;
+            nodeItem = null;
 
-            foreach (NodeItem node in nodes)
+            foreach (NodeModel node in Diagram.Nodes)
             {
-                if (node.ID == obj.Id)
+                if (node.Id == obj.Id)
                 {
-                    ID = obj.Id;
-                    Name = node.Name;
-                    Description = node.Description;
-
-                    switch (node.Type)
+                    switch (node.GetType().Name)
                     {
-                        case ShapeType.Start:
-                            PosX = ((StartModel) obj).Position.X;
-                            PosY = ((StartModel) obj).Position.Y;
-                            Width = ((StartModel) obj).Size.Width;
-                            Height = ((StartModel) obj).Size.Height;
+                        case "StartModel":
+                            StartModel startModel = node as StartModel;
+                            nodeItem = new NodeItem(startModel.Id, ShapeType.Start, startModel.Properties.Name, startModel.Properties.Description, startModel.Properties.Label);
                             break;
-                        case ShapeType.End:
-                            PosX = ((EndModel) obj).Position.X;
-                            PosY = ((EndModel) obj).Position.Y;
-                            Width = ((EndModel) obj).Size.Width;
-                            Height = ((EndModel) obj).Size.Height;
+                        case "EndModel":
+                            EndModel endModel = node as EndModel;
+                            nodeItem = new NodeItem(endModel.Id, ShapeType.Start, endModel.Properties.Name, endModel.Properties.Description, endModel.Properties.Label);
                             break;
-                        case ShapeType.Diamond:
-                            PosX = ((DiamondModel) obj).Position.X;
-                            PosY = ((DiamondModel) obj).Position.Y;
-                            Width = ((DiamondModel) obj).Size.Width;
-                            Height = ((DiamondModel) obj).Size.Height;
+                        case "DiamondModel":
+                            DiamondModel diamondModel = node as DiamondModel;
+                            nodeItem = new NodeItem(diamondModel.Id, ShapeType.Start, diamondModel.Properties.Name, diamondModel.Properties.Description, diamondModel.Properties.Label);
                             break;
-                        case ShapeType.Rectangle:
-                            PosX = ((RectangleModel) obj).Position.X;
-                            PosY = ((RectangleModel) obj).Position.Y;
-                            Width = ((RectangleModel) obj).Size.Width;
-                            Height = ((RectangleModel) obj).Size.Height;
+                        case "RectangleModel":
+                            RectangleModel rectangleModel = node as RectangleModel;
+                            nodeItem = new NodeItem(rectangleModel.Id, ShapeType.Start, rectangleModel.Properties.Name, rectangleModel.Properties.Description, rectangleModel.Properties.Label);
                             break;
-                        case ShapeType.Triangle:
-                            PosX = ((TriangleModel) obj).Position.X;
-                            PosY = ((TriangleModel) obj).Position.Y;
-                            Width = ((TriangleModel) obj).Size.Width;
-                            Height = ((TriangleModel) obj).Size.Height;
-                            break;
-                        case ShapeType.Normal:
-                            PosX = ((SvgNodeModel) obj).Position.X;
-                            PosY = ((SvgNodeModel) obj).Position.Y;
-                            Width = ((SvgNodeModel) obj).Size.Width;
-                            Height = ((SvgNodeModel) obj).Size.Height;
+                        case "TriangleModel":
+                            TriangleModel triangleModel = node as TriangleModel;
+                            nodeItem = new NodeItem(triangleModel.Id, ShapeType.Start, triangleModel.Properties.Name, triangleModel.Properties.Description, triangleModel.Properties.Label);
                             break;
                         default:
                             break;
@@ -225,36 +129,29 @@ namespace Workflow.Pages
             }
         }
 
+        /// <summary>
+        /// Re-validation if a link is removed
+        /// </summary>
+
         private void Links_Removed(BaseLinkModel obj)
         {
             ValidateDiagram();
         }
 
+        /// <summary>
+        /// Re-validation if a the mouse button is released
+        /// </summary>
         private void Diagram_PointerUp(Model? arg1, Blazor.Diagrams.Core.Events.PointerEventArgs arg2)
         {
             ValidateDiagram();
-
-           
         }
 
+
+        /// <summary>
+        /// Re-validation if a node is removed
+        /// </summary>
         private void Nodes_Removed(NodeModel obj)
         {
-            NodeItem delete = null;
-
-            foreach (NodeItem item in nodes)
-            {
-                if(item.ID == obj.Id)
-                {
-                    delete = item;
-                    break;
-                }
-            }
-
-            if (delete != null)
-            {
-                nodes.Remove(delete);
-            }
-
             ValidateDiagram();
         }
 
@@ -285,6 +182,9 @@ namespace Workflow.Pages
             Diagram.SelectionChanged -= Diagram_SelectionChanged;
         }
 
+        /// <summary>
+        /// Update the zoom indicator
+        /// </summary>
         private void Diagram_ZoomChanged()
         {
             ZoomLevel = Diagram.Zoom;
@@ -311,7 +211,10 @@ namespace Workflow.Pages
                     startNode.AddPort(PortAlignment.Bottom);
                     startNode.AddPort(PortAlignment.Left);
                     startNode.AddPort(PortAlignment.Right);
-                    nodes.Add(new NodeItem(startNode.Id, ShapeType.Start, "Start_" + nodeCounter.ToString(), "Start Node"));
+                    startNode.Properties.ID = startNode.Id;
+                    startNode.Properties.Label = "Start";
+                    startNode.Properties.Name = "Start_" + nodeCounter.ToString();
+                    startNode.Properties.Description = "Start Node";
                     return startNode;
                 case ShapeType.End:
                     var endNode = new EndModel(new Point(x, y));
@@ -320,7 +223,10 @@ namespace Workflow.Pages
                     endNode.AddPort(PortAlignment.Bottom);
                     endNode.AddPort(PortAlignment.Left);
                     endNode.AddPort(PortAlignment.Right);
-                    nodes.Add(new NodeItem(endNode.Id, ShapeType.End, "End_" + nodeCounter.ToString(), "End Node"));
+                    endNode.Properties.ID = endNode.Id;
+                    endNode.Properties.Label = "End";
+                    endNode.Properties.Name = "End_" + nodeCounter.ToString();
+                    endNode.Properties.Description = "End Node";
                     return endNode;
                 case ShapeType.Triangle:
                     var triangleNode = new TriangleModel(new Point(x, y));
@@ -328,7 +234,10 @@ namespace Workflow.Pages
                     triangleNode.AddPort(PortAlignment.Top);
                     triangleNode.AddPort(PortAlignment.Left);
                     triangleNode.AddPort(PortAlignment.Right);
-                    nodes.Add(new NodeItem(triangleNode.Id, ShapeType.Triangle, "Triangle_" + nodeCounter.ToString(), "Node"));
+                    triangleNode.Properties.ID = triangleNode.Id;
+                    triangleNode.Properties.Label = "";
+                    triangleNode.Properties.Name = "Triangle_" + nodeCounter.ToString();
+                    triangleNode.Properties.Description = "Triangle Node";
                     return triangleNode;
                 case ShapeType.Rectangle:
                     var rectangleNode = new RectangleModel(new Point(x, y));
@@ -337,7 +246,10 @@ namespace Workflow.Pages
                     rectangleNode.AddPort(PortAlignment.Bottom);
                     rectangleNode.AddPort(PortAlignment.Left);
                     rectangleNode.AddPort(PortAlignment.Right);
-                    nodes.Add(new NodeItem(rectangleNode.Id, ShapeType.Rectangle, "Rectangle_" + nodeCounter.ToString(), "Node"));
+                    rectangleNode.Properties.ID = rectangleNode.Id;
+                    rectangleNode.Properties.Label = "";
+                    rectangleNode.Properties.Name = "Rectangle_" + nodeCounter.ToString();
+                    rectangleNode.Properties.Description = "Rectangle Node";
                     return rectangleNode;
                 case ShapeType.Diamond:
                     var diamondNode = new DiamondModel(new Point(x, y));
@@ -346,20 +258,17 @@ namespace Workflow.Pages
                     diamondNode.AddPort(PortAlignment.Bottom);
                     diamondNode.AddPort(PortAlignment.Left);
                     diamondNode.AddPort(PortAlignment.Right);
-                    nodes.Add(new NodeItem(diamondNode.Id, ShapeType.Diamond, "Diamond_" + nodeCounter.ToString(), "Node"));
+                    diamondNode.Properties.ID = diamondNode.Id;
+                    diamondNode.Properties.Label = "";
+                    diamondNode.Properties.Name = "Diamond_" + nodeCounter.ToString();
+                    diamondNode.Properties.Description = "Diamond Node";
                     return diamondNode;
                 default:
                     var node = new NodeModel(new Point(x, y));
                     node.AddPort(PortAlignment.Left);
                     node.AddPort(PortAlignment.Right);
-                    nodes.Add(new NodeItem(node.Id, ShapeType.Normal, "Normal_" + nodeCounter.ToString(), "Node"));
                     return node;
             }
-        }
-
-        private void Node_Clicked(object? sender, EventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -385,19 +294,17 @@ namespace Workflow.Pages
         {
             Diagram.Nodes.Clear();
             nodeCounter = 0;
-            nodes.Clear();
             ValidateDiagram();
         }
 
         /// <summary>
-        /// Clear the Diagram canvas, and add a start and end node
+        /// Clear the Diagram canvas, and automatically add a start and end node
         /// </summary>
         /// <returns></returns>
         private async Task Template()
         {
             Diagram.Nodes.Clear();
             nodeCounter = 0;
-            nodes.Clear();
             Diagram.Nodes.Add(NewNode(Diagram.Container.Left - 100, Diagram.Container.Center.Y - 60, ShapeType.Start));
             Diagram.Nodes.Add(NewNode(Diagram.Container.Right - 300, Diagram.Container.Center.Y - 60, ShapeType.End));
             ValidateDiagram();
@@ -413,6 +320,48 @@ namespace Workflow.Pages
         }
 
         /// <summary>
+        /// Apply property changes to the selected node
+        /// </summary>
+        private void ApplyPropertyChanges()
+        {
+            foreach (NodeModel node in Diagram.Nodes)
+            {
+                if (node.Id == nodeItem.ID)
+                {
+                    switch (node.GetType().Name)
+                    {
+                        case "StartModel":
+                            StartModel startModel = node as StartModel;
+                            startModel.Properties = nodeItem;
+                            break;
+                        case "EndModel":
+                            EndModel endModel = node as EndModel;
+                            endModel.Properties = nodeItem;
+                            break;
+                        case "DiamondModel":
+                            DiamondModel diamondModel = node as DiamondModel;
+                            diamondModel.Properties = nodeItem;
+                            break;
+                        case "RectangleModel":
+                            RectangleModel rectangleModel = node as RectangleModel;
+                            rectangleModel.Properties = nodeItem;
+                            break;
+                        case "TriangleModel":
+                            TriangleModel triangleModel = node as TriangleModel;
+                            triangleModel.Properties = nodeItem ;
+                            
+                            break;
+                        default:
+                            break;
+                    }
+                    node.Refresh();
+
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
         /// Start dragging an element from the pallette
         /// </summary>
         /// <param name="key"></param>
@@ -422,7 +371,7 @@ namespace Workflow.Pages
         }
 
         /// <summary>
-        /// Drop a dragged element onto the canvas
+        /// Drop a dragged element onto the canvas and select it
         /// </summary>
         /// <param name="e"></param>
         private void OnDrop(DragEventArgs e)
@@ -430,15 +379,24 @@ namespace Workflow.Pages
             if (draggedType == null) // Unkown item
                 return;
 
+            // Get the drop position
             var position = Diagram.GetRelativeMousePoint(e.ClientX, e.ClientY);
 
-            Diagram.Nodes.Add(NewNode(position.X, position.Y, (ShapeType) draggedType));
+            // Create a new node at the position
+            NodeModel newNode = Diagram.Nodes.Add(NewNode(position.X, position.Y, (ShapeType) draggedType));
 
+            // Select the new node
+            Diagram.SelectModel(newNode, true);
+
+            // Clear the drag type
             draggedType = null;
 
             ValidateDiagram();
         }
 
+        /// <summary>
+        /// Validate the diagram. Diagram status is indicated top right
+        /// </summary>
         private void ValidateDiagram()
         {
             int startCount = 0;
@@ -446,13 +404,14 @@ namespace Workflow.Pages
 
             ValidationReason = "";
 
-            foreach (NodeItem node in nodes)
+            // Make sure there is a start and end node. Each diagram may have only on of each
+            foreach (NodeModel node in Diagram.Nodes)
             {
-                if (node.Type == ShapeType.Start)
+                if (node.GetType().Name == "StartModel")
                 {
                     startCount++;
                 }
-                if (node.Type == ShapeType.End)
+                if (node.GetType().Name == "EndModel")
                 {
                     endCount++;
                 }
@@ -487,6 +446,7 @@ namespace Workflow.Pages
                 }
             }
 
+            // Check that each node is linked to at least one other
             foreach (NodeModel node in Diagram.Nodes)
             {
                 int linked = 0;
@@ -507,6 +467,7 @@ namespace Workflow.Pages
                 }
             }
 
+            // Make sure each link starts and ends at a node
             foreach (BaseLinkModel link in Diagram.Links)
             {
                 if (!link.IsAttached)
@@ -517,6 +478,7 @@ namespace Workflow.Pages
                 }
             }
 
+            // Update the status display
             if (IsDiagramValid)
             {
                 ValidationReason = "<b>No Errors</b><br><br>&#x2022 Diagram is valid<br>";

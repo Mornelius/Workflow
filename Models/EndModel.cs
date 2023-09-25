@@ -1,6 +1,7 @@
 ﻿using Blazor.Diagrams.Core.Geometry;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Models;
+using Workflow.Structures;
 
 namespace Workflow.Models
 {
@@ -24,10 +25,7 @@ namespace Workflow.Models
             }
         }
 
-        public string Label
-        {
-            get;
-            set;
-        } = "End";
+
+        public NodeItem Properties = new NodeItem();
     }
 }

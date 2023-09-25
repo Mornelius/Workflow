@@ -2,6 +2,7 @@
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Models;
 using System.Runtime.CompilerServices;
+using Workflow.Structures;
 
 namespace Workflow.Models
 {
@@ -25,10 +26,6 @@ namespace Workflow.Models
             }
         }
 
-        public string Label
-        {
-            get;
-            set;
-        } = "Start";
+        public NodeItem Properties = new NodeItem();
     }
 }

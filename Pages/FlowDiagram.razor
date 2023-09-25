@@ -3,6 +3,8 @@
 @using Blazor.Diagrams.Components
 @using Workflow.Components
 
+@inject IJSRuntime JSRuntime
+
 <div class="container">
     <div class="item_menu">
         <button class="btn btn-primary" @onclick="Clear">Clear</button>
@@ -58,13 +60,17 @@
     </div>
     <div class="item_properties">
         <label class="property_title">ID:</label>
-        <InputText @ref=propID class="property_value" type="text" @bind-Value="@ID" readonly />
+        <input class="property_value" type="text" readonly value="@(nodeItem == null ? " " : nodeItem.ID)" />
         <br />
         <label class="property_title">Name:</label>
-        <InputText @ref=propName class="property_value" type="text" @bind-Value="@Name" />
+        <input class="property_value" type="text" @bind-value="nodeItem.Name" />
         <br />
         <label class="property_title">Description:</label>
-        <InputTextArea @ref=propDescription class="property_value" @bind-Value="@Description"></InputTextArea>
+        <input class="property_value" type="text" @bind-value="nodeItem.Description" />
+        <br />
+        <label class="property_title">Label:</label>
+        <input class="property_value" type="text" @bind-value="nodeItem.Label" />
+
         @* <br />
         <label class="property_title">X Position:</label>
         <input class="property_value" type="number" @bind-value=PosX/>
@@ -75,6 +81,9 @@
         <input class="property_value" type="number" @bind-value=Width/>
         <label class="property_title">Height:</label>
         <input class="property_value" type="number" @bind-value=Height /> *@
+
+        <br />
+        <button class="btn btn-primary" @onclick="ApplyPropertyChanges">Apply</button>
     </div>
     <div class="item_output">
     </div>
