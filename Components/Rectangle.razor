@@ -52,9 +52,9 @@
               x="11.467181"
               y="125.37452" />
     </g>
-    <foreignObject x="0" y="0" width="100" height="60">
-        <div xmlns="http://www.w3.org/1999/xhtml">
-            <div class="text-container">
+    <foreignObject x="0" y="0" width="160" height="90">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="rectangle_object">
+            <div class="rectangle_text-container">
                 @Node.Properties.Label
             </div>
         </div>
@@ -90,12 +90,16 @@
         fill: black;
     }
 
-    .text-container {
+    .rectangle_text-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 45px;
-        font-size: 0.7rem;
+        height: 100%;
+        font-size: 1rem;
         background: none;
+    }
+
+    .rectangle_object {
+        height: 100%;
     }
 </style>

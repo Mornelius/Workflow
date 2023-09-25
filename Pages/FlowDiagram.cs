@@ -93,6 +93,9 @@ namespace Workflow.Pages
             ValidateDiagram();
         }
 
+        /// <summary>
+        /// Document drawing changes 
+        /// </summary>
         private void Diagram_Changed()
         {
             List<ExportNode> exportNodes = new List<ExportNode>();
@@ -414,7 +417,11 @@ namespace Workflow.Pages
             int x = (int) defaultX;
             int y = (int) defaultY;
 
-            Diagram.Nodes.Add(NewNode(x, y, type));
+            // Create a new node at the position
+            NodeModel newNode = Diagram.Nodes.Add(NewNode(x, y, type));
+
+            // Select the new node
+            Diagram.SelectModel(newNode, true);
 
             ValidateDiagram();
         }
