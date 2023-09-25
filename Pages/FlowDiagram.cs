@@ -8,17 +8,23 @@ using Blazor.Diagrams.Core.PathGenerators;
 using Blazor.Diagrams.Core.Routers;
 using Blazor.Diagrams.Options;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Workflow.Components;
 using Workflow.Models;
 using Workflow.Structures;
 using static Workflow.Structures.Enumerators;
-
+using Newtonsoft;
+using Newtonsoft.Json;
+using Blazor.Diagrams.Core.Anchors;
 
 namespace Workflow.Pages
 {
     public partial class FlowDiagram
     {
+        InputTextArea txtOutput;
+        string diagramDescription = "";
+
         private bool IsDiagramValid
         {
             get; set;
@@ -74,7 +80,7 @@ namespace Workflow.Pages
             Diagram.PointerUp += Diagram_PointerUp;
             Diagram.Links.Removed += Links_Removed;
             Diagram.SelectionChanged += Diagram_SelectionChanged;
-
+            
             // We created new custom shapes - they need to be registered on the canvas before they can be used
             Diagram.RegisterComponent<StartModel, Start>();
             Diagram.RegisterComponent<EndModel, End>();
@@ -87,13 +93,140 @@ namespace Workflow.Pages
             ValidateDiagram();
         }
 
+        private void Diagram_Changed()
+        {
+            List<ExportNode> exportNodes = new List<ExportNode>();
+
+            foreach (NodeModel node in Diagram.Nodes)
+            {
+                ExportNode exportNode = new ExportNode();
+                exportNode.ID = node.Id;
+                exportNode.XPosition = node.Position.X;
+                exportNode.YPosition = node.Position.Y;
+                if (node.Size != null)
+                {
+                    exportNode.Width = node.Size.Width;
+                    exportNode.Height = node.Size.Height;
+                }
+
+                switch (node.GetType().Name)
+                {
+                    case "StartModel":
+                        StartModel startModel = node as StartModel;
+                        exportNode.Description = startModel.Properties.Description;
+                        exportNode.Name = startModel.Properties.Name;
+                        exportNode.Label = startModel.Properties.Label;
+                        exportNode.Type = startModel.Properties.Type;
+                        break;
+                    case "EndModel":
+                        EndModel endModel = node as EndModel;
+                        exportNode.Description = endModel.Properties.Description;
+                        exportNode.Name = endModel.Properties.Name;
+                        exportNode.Label = endModel.Properties.Label;
+                        exportNode.Type = endModel.Properties.Type;
+                        break;
+                    case "DiamondModel":
+                        DiamondModel diamondModel = node as DiamondModel;
+                        exportNode.Description = diamondModel.Properties.Description;
+                        exportNode.Name = diamondModel.Properties.Name;
+                        exportNode.Label = diamondModel.Properties.Label;
+                        exportNode.Type = diamondModel.Properties.Type;
+                        break;
+                    case "RectangleModel":
+                        RectangleModel rectangleModel = node as RectangleModel;
+                        exportNode.Description = rectangleModel.Properties.Description;
+                        exportNode.Name = rectangleModel.Properties.Name;
+                        exportNode.Label = rectangleModel.Properties.Label;
+                        exportNode.Type = rectangleModel.Properties.Type;
+                        break;
+                    case "TriangleModel":
+                        TriangleModel triangleModel = node as TriangleModel;
+                        exportNode.Description = triangleModel.Properties.Description;
+                        exportNode.Name = triangleModel.Properties.Name;
+                        exportNode.Label = triangleModel.Properties.Label;
+                        exportNode.Type = triangleModel.Properties.Type;
+                        break;
+                    default:
+                        exportNode.Description = "";
+                        exportNode.Name = "";
+                        exportNode.Label = "";
+                        exportNode.Type = ShapeType.Normal;
+                        break;
+                }
+
+                List<ExportPort> ports = new List<ExportPort>();
+
+                foreach (PortModel port in node.Ports)
+                {
+                    ExportPort exportPort = new ExportPort();
+                    exportPort.ID = port.Id;
+                    exportPort.PortAlignment = port.Alignment;
+
+                    List<ExportLink> links = new List<ExportLink>();
+
+                    foreach (LinkModel link in port.Links)
+                    {
+                        if (link.IsAttached)
+                        {
+                            ExportLink exportLink = new ExportLink();
+
+                            exportLink.ID = link.Id;
+
+                            if (((SinglePortAnchor) link.Source).Model != null)
+                            {
+                                SinglePortAnchor source = (SinglePortAnchor) link.Source;
+                                exportLink.StartPortID = source.Port.Id;
+                            }
+                            if (((SinglePortAnchor) link.Target).Model != null)
+                            {
+                                SinglePortAnchor target = (SinglePortAnchor) link.Target;
+                                exportLink.EndPortID = target.Port.Id;
+                            }
+
+                            List<ExportVertice> vertices = new List<ExportVertice>();
+
+                            foreach (LinkVertexModel vertice in link.Vertices)
+                            {
+                                ExportVertice exportVertice = new ExportVertice();
+
+                                exportVertice.ID = vertice.Id;
+                                exportVertice.XPosition = vertice.Position.X;
+                                exportVertice.YPosition = vertice.Position.Y;
+                                exportVertice.Lenght = vertice.Position.Length;
+
+                                vertices.Add(exportVertice);
+                            }
+
+                            exportLink.Vertices = vertices;
+
+                            links.Add(exportLink);
+                        }
+                    }
+                    exportPort.exportLinks.AddRange(links);
+
+                    ports.Add(exportPort);
+                }
+                exportNode.Ports = ports;
+
+                exportNodes.Add(exportNode);
+            }
+
+            var settings = new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Formatting = Formatting.Indented,
+            };
+
+            diagramDescription = JsonConvert.SerializeObject(exportNodes, settings);
+        }
+
         /// <summary>
         /// Update the properties when a new node is selected
         /// </summary>
         /// <param name="obj"></param>
         private void Diagram_SelectionChanged(SelectableModel obj)
         {
-            nodeItem = null;
+            nodeItem = new NodeItem();
 
             foreach (NodeModel node in Diagram.Nodes)
             {
@@ -488,6 +621,7 @@ namespace Workflow.Pages
                 ValidationReason = "<b>Errors Found</b><br><br>" + ValidationReason;
             }
 
+            Diagram_Changed();
             StateHasChanged();
         }
     }

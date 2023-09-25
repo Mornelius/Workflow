@@ -11,6 +11,7 @@
         <button class="btn btn-primary" @onclick="Template">Template</button>
         <button class="btn btn-primary" @onclick="() => Diagram.ZoomToFit(10)" style="width: 240px;">Zoom to fit</button>
         <button class="btn btn-primary" @onclick="ReconnectLinks" style="width: 260px;">Reconnect Links</button>
+        @* <button class="btn btn-primary" @onclick="Diagram_Changed" style="width: 260px;">Convert</button> *@
         @* <span>Zoom Level : @ZoomLevel</span> *@
 
 
@@ -86,6 +87,7 @@
         <button class="btn btn-primary" @onclick="ApplyPropertyChanges">Apply</button>
     </div>
     <div class="item_output">
+        <InputTextArea class="output_display" @ref="txtOutput" @bind-Value="diagramDescription" style="width: 100%;"></InputTextArea>
     </div>
 </div>
 
@@ -193,5 +195,9 @@
     .property_value {
         font-size: 0.8rem;
         font-weight: 400;
+    }
+
+    .output_display{
+        height: 100%;
     }
 </style>
