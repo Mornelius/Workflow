@@ -12,14 +12,28 @@ namespace Workflow.Shared
             this.jsRuntime = jsRuntime;
         }
 
-        public ValueTask WriteTextAsync(string text)
+        public async ValueTask WriteTextAsync(string text)
         {
-            return jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            try
+            {
+                await jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
-        public ValueTask<string> ReadTextAsync()
+        public async ValueTask<string> ReadTextAsync()
         {
-            return jsRuntime.InvokeAsync<string>("navigator.clipboard.readText");
+            try
+            {
+                return await jsRuntime.InvokeAsync<string>("navigator.clipboard.readText");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
     }
 }

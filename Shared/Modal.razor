@@ -1,0 +1,90 @@
+﻿<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                @switch (Type)
+                {
+                    case MessageType.Warning:
+                        <h5 class="modal-title" style="background-color: orange; color:orangered">@Title</h5>
+                        break;
+                    case MessageType.Error:
+                        <h5 class="modal-title" style="background-color: red; color:white">@Title</h5>
+                        break;
+                    default:
+                        <h5 class="modal-title">@Title</h5>
+                        break;
+                }
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close" @onclick="Close">
+                </button>
+            </div>
+            <div class="modal-body">
+                @if(Message.Length > 0)
+                {
+                    @Message
+                    <br />
+                    <button class="btn btn-primary" @onclick="() => Close()">Close</button>
+                }
+                else
+                {
+                    @ChildContent
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public string Title
+    {
+        get; set;
+    }
+
+    [Parameter]
+    public string Message
+    {
+        get; set;
+    } = "";
+
+    [Parameter]
+    public MessageType Type
+    {
+        get; set;
+    }
+
+    [Parameter]
+    public RenderFragment ChildContent
+    {
+        get; set;
+    }
+
+    private string modalDisplay = "none;";
+    private string modalClass = string.Empty;
+    private bool showBackdrop = false;
+
+    public enum MessageType
+    {
+        Info,
+        Warning,
+        Error
+    }
+
+    public void Open()
+    {
+        modalDisplay = "block";
+        modalClass = "show";
+        showBackdrop = true;
+    }
+
+    public void Close()
+    {
+        modalDisplay = "none";
+        modalClass = string.Empty;
+        showBackdrop = false;
+    }
+}

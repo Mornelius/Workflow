@@ -18,12 +18,15 @@ using Newtonsoft;
 using Newtonsoft.Json;
 using Blazor.Diagrams.Core.Anchors;
 using static System.Net.Mime.MediaTypeNames;
+using Workflow.Shared;
 
 namespace Workflow.Pages
 {
     public partial class FlowDiagram
     {
         InputTextArea txtOutput;
+        Modal Modal;
+
         string diagramDescription = "";
 
         private bool IsDiagramValid
@@ -55,6 +58,8 @@ namespace Workflow.Pages
         private BlazorDiagram Diagram = null;
 
         private ShapeType? draggedType;
+
+        private LinkModel? LinkToDelete = null;
 
         protected override async Task OnInitializedAsync()
         {
@@ -123,35 +128,35 @@ namespace Workflow.Pages
                         exportNode.Description = startModel.Properties.Description;
                         exportNode.Name = startModel.Properties.Name;
                         exportNode.Label = startModel.Properties.Label;
-                        exportNode.Type = startModel.Properties.Type;
+                        exportNode.Type = ShapeType.Start;
                         break;
                     case "EndModel":
                         EndModel endModel = node as EndModel;
                         exportNode.Description = endModel.Properties.Description;
                         exportNode.Name = endModel.Properties.Name;
                         exportNode.Label = endModel.Properties.Label;
-                        exportNode.Type = endModel.Properties.Type;
+                        exportNode.Type = ShapeType.End;
                         break;
                     case "DiamondModel":
                         DiamondModel diamondModel = node as DiamondModel;
                         exportNode.Description = diamondModel.Properties.Description;
                         exportNode.Name = diamondModel.Properties.Name;
                         exportNode.Label = diamondModel.Properties.Label;
-                        exportNode.Type = diamondModel.Properties.Type;
+                        exportNode.Type = ShapeType.Diamond;
                         break;
                     case "RectangleModel":
                         RectangleModel rectangleModel = node as RectangleModel;
                         exportNode.Description = rectangleModel.Properties.Description;
                         exportNode.Name = rectangleModel.Properties.Name;
                         exportNode.Label = rectangleModel.Properties.Label;
-                        exportNode.Type = rectangleModel.Properties.Type;
+                        exportNode.Type = ShapeType.Rectangle;
                         break;
                     case "TriangleModel":
                         TriangleModel triangleModel = node as TriangleModel;
                         exportNode.Description = triangleModel.Properties.Description;
                         exportNode.Name = triangleModel.Properties.Name;
                         exportNode.Label = triangleModel.Properties.Label;
-                        exportNode.Type = triangleModel.Properties.Type;
+                        exportNode.Type = ShapeType.Triangle;
                         break;
                     default:
                         exportNode.Description = "";
@@ -297,17 +302,54 @@ namespace Workflow.Pages
 
 
         /// <summary>
-        /// Define what a link looks like when it is added
+        /// Define what a link looks like when it is added. Also ensure that each port only has one link attached
         /// </summary>
         /// <param name="obj"></param>
         private void Links_Added(Blazor.Diagrams.Core.Models.Base.BaseLinkModel obj)
         {
+            // Stop link add if the start port is already occupied
+            foreach (NodeModel node in Diagram.Nodes)
+            {
+                foreach (PortModel port in node.Ports)
+                {
+                    if (port.Links.Count > 1)
+                    {
+                        if (port.Links.Contains(obj))
+                        {
+                            Diagram.Links.Remove(obj);
+                            ValidateDiagram();
+                            return;
+                        }
+                    }
+                }
+            }
+
             obj.PathGenerator = new StraightPathGenerator();
             obj.Router = new OrthogonalRouter();
             obj.TargetMarker = LinkMarker.Arrow;
             obj.Segmentable = true;
-
+            obj.TargetAttached += Obj_TargetAttached;
             ValidateDiagram();
+        }
+
+        private void Obj_TargetAttached(BaseLinkModel obj)
+        {
+            Anchor startAnchor = obj.Source;
+            Anchor endAnchor = obj.Target;
+
+            foreach (LinkModel link in Diagram.Links)
+            {
+                if (link.Id != obj.Id &&
+                    (
+                        ((SinglePortAnchor) link.Source).Port.Id == ((SinglePortAnchor) startAnchor).Port.Id ||
+                        ((SinglePortAnchor) link.Target).Port.Id == ((SinglePortAnchor) startAnchor).Port.Id ||
+                        ((SinglePortAnchor) link.Source).Port.Id == ((SinglePortAnchor) endAnchor).Port.Id ||
+                        ((SinglePortAnchor) link.Target).Port.Id == ((SinglePortAnchor) endAnchor).Port.Id))
+                {
+                    LinkToDelete = (LinkModel) obj;
+                    //ValidateDiagram();
+                }
+            }
         }
 
         /// <summary>
@@ -356,6 +398,7 @@ namespace Workflow.Pages
                     startNode.Properties.Label = "Start";
                     startNode.Properties.Name = "Start_" + nodeCounter.ToString();
                     startNode.Properties.Description = "Start Node";
+                    startNode.Properties.Type = type;
                     return startNode;
                 case ShapeType.End:
                     var endNode = new EndModel(new Point(x, y));
@@ -368,6 +411,7 @@ namespace Workflow.Pages
                     endNode.Properties.Label = "End";
                     endNode.Properties.Name = "End_" + nodeCounter.ToString();
                     endNode.Properties.Description = "End Node";
+                    endNode.Properties.Type = type;
                     return endNode;
                 case ShapeType.Triangle:
                     var triangleNode = new TriangleModel(new Point(x, y));
@@ -379,6 +423,7 @@ namespace Workflow.Pages
                     triangleNode.Properties.Label = "";
                     triangleNode.Properties.Name = "Triangle_" + nodeCounter.ToString();
                     triangleNode.Properties.Description = "Triangle Node";
+                    triangleNode.Properties.Type = type;
                     return triangleNode;
                 case ShapeType.Rectangle:
                     var rectangleNode = new RectangleModel(new Point(x, y));
@@ -391,6 +436,7 @@ namespace Workflow.Pages
                     rectangleNode.Properties.Label = "";
                     rectangleNode.Properties.Name = "Rectangle_" + nodeCounter.ToString();
                     rectangleNode.Properties.Description = "Rectangle Node";
+                    rectangleNode.Properties.Type = type;
                     return rectangleNode;
                 case ShapeType.Diamond:
                     var diamondNode = new DiamondModel(new Point(x, y));
@@ -398,11 +444,12 @@ namespace Workflow.Pages
                     diamondNode.AddPort(PortAlignment.Top);
                     diamondNode.AddPort(PortAlignment.Bottom);
                     diamondNode.AddPort(PortAlignment.Left);
-                    diamondNode.AddPort(PortAlignment.Right);
+                    //diamondNode.AddPort(PortAlignment.Right);
                     diamondNode.Properties.ID = diamondNode.Id;
                     diamondNode.Properties.Label = "";
                     diamondNode.Properties.Name = "Diamond_" + nodeCounter.ToString();
                     diamondNode.Properties.Description = "Diamond Node";
+                    diamondNode.Properties.Type = type;
                     return diamondNode;
                 default:
                     var node = new NodeModel(new Point(x, y));
@@ -500,12 +547,16 @@ namespace Workflow.Pages
                             break;
                     }
                     node.Refresh();
-
+                    ValidateDiagram();
                     break;
                 }
             }
         }
 
+        /// <summary>
+        /// Copy the JSON desribing the model from the description to the clipboard
+        /// </summary>
+        /// <returns></returns>
         private async Task Copy()
         {
             try
@@ -518,13 +569,198 @@ namespace Workflow.Pages
             }
         }
 
+        /// <summary>
+        /// Paste a model description to the JSON description and build the model
+        /// </summary>
+        /// <returns></returns>
         private async Task Paste()
         {
             Clear();
-            string text = "";
-            text = await ClipboardService.ReadTextAsync();
+            try
+            {
+                diagramDescription = await ClipboardService.ReadTextAsync();
+                GenerateDiagramFromString(diagramDescription);
+            }
+            catch
+            {
+                Console.WriteLine("Cannot read from clipboard");
+            }
         }
-        
+
+        /// <summary>
+        /// Rebuild the model from its JSON string
+        /// </summary>
+        /// <param name="value">JSON string containing the model description</param>
+        private void GenerateDiagramFromString(string value)
+        {
+            // Dictionaried to map the original IDs to the new IDs
+            Dictionary<string, string> IDList = new Dictionary<string, string>();
+            Dictionary<string, string> PortList = new Dictionary<string, string>();
+            Dictionary<string, string> newLinks = new Dictionary<string, string>();
+
+            List<ExportNode> exportNodes = new List<ExportNode>();
+
+            try
+            {
+                exportNodes = JsonConvert.DeserializeObject<List<ExportNode>>(value);
+
+                // First add all the nodes
+                foreach (ExportNode node in exportNodes)
+                {
+                    NodeModel newNode = Diagram.Nodes.Add(NewNode(node.XPosition, node.YPosition, node.Type));
+
+                    switch (node.Type)
+                    {
+                        case ShapeType.Start:
+                            StartModel startModel = newNode as StartModel;
+                            startModel.Properties.Name = node.Name;
+                            startModel.Properties.Label = node.Label;
+                            startModel.Properties.ID = newNode.Id;
+                            startModel.Properties.Type = node.Type;
+                            break;
+                        case ShapeType.End:
+                            EndModel endModel = newNode as EndModel;
+                            endModel.Properties.Name = node.Name;
+                            endModel.Properties.Label = node.Label;
+                            endModel.Properties.ID = newNode.Id;
+                            endModel.Properties.Type = node.Type;
+                            break;
+                        case ShapeType.Diamond:
+                            DiamondModel diamondModel = newNode as DiamondModel;
+                            diamondModel.Properties.Name = node.Name;
+                            diamondModel.Properties.Label = node.Label;
+                            diamondModel.Properties.ID = newNode.Id;
+                            diamondModel.Properties.Type = node.Type;
+                            break;
+                        case ShapeType.Rectangle:
+                            RectangleModel rectangleModel = newNode as RectangleModel;
+                            rectangleModel.Properties.Name = node.Name;
+                            rectangleModel.Properties.Label = node.Label;
+                            rectangleModel.Properties.ID = newNode.Id;
+                            rectangleModel.Properties.Type = node.Type;
+                            break;
+                        case ShapeType.Triangle:
+                            TriangleModel triangleModel = newNode as TriangleModel;
+                            triangleModel.Properties.Name = node.Name;
+                            triangleModel.Properties.Label = node.Label;
+                            triangleModel.Properties.ID = newNode.Id;
+                            triangleModel.Properties.Type = node.Type;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    IDList.Add(node.ID, newNode.Id);
+
+                    // Map the node ports to their new IDs
+                    foreach (ExportPort port in node.Ports)
+                    {
+                        foreach (PortModel portModel in newNode.Ports)
+                        {
+                            if (port.PortAlignment == portModel.Alignment)
+                            {
+                                PortList.Add(port.ID, portModel.Id);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Run through the nodes again to build the links and vertices
+                foreach (ExportNode node in exportNodes)
+                {
+                    double XOffset = 0;
+                    double YOffset = 0;
+
+                    switch (node.Type)
+                    {
+                        case ShapeType.Start:
+                            StartModel startModel = new StartModel();
+                            XOffset = startModel.PositionOffSetX;
+                            YOffset = startModel.PositionOffSetY;
+                            break;
+                        case ShapeType.End:
+                            EndModel endModel = new EndModel();
+                            XOffset = endModel.PositionOffSetX;
+                            YOffset = endModel.PositionOffSetY;
+                            break;
+                        case ShapeType.Diamond:
+                            DiamondModel diamondModel = new DiamondModel();
+                            XOffset = diamondModel.PositionOffSetX;
+                            YOffset = diamondModel.PositionOffSetY;
+                            break;
+                        case ShapeType.Rectangle:
+                            RectangleModel rectangleModel = new RectangleModel();
+                            XOffset = rectangleModel.PositionOffSetX;
+                            YOffset = rectangleModel.PositionOffSetY;
+                            break;
+                        case ShapeType.Triangle:
+                            TriangleModel triangleModel = new TriangleModel();
+                            XOffset = triangleModel.PositionOffSetX;
+                            YOffset = triangleModel.PositionOffSetY;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    foreach (ExportPort port in node.Ports)
+                    {
+                        foreach (ExportLink link in port.exportLinks)
+                        {
+                            string startPortID = PortList.GetValueOrDefault(link.StartPortID);
+                            string endPortID = PortList.GetValueOrDefault(link.EndPortID);
+
+                            string testEndPort = newLinks.GetValueOrDefault(startPortID);
+                            if (testEndPort != endPortID)
+                            {
+                                LinkModel newLink = Diagram.Links.Add(new LinkModel(GetPort(startPortID), GetPort(endPortID)));
+                                newLinks.Add(startPortID, endPortID);
+
+                                foreach (ExportVertice vertice in link.Vertices)
+                                {
+                                    newLink.Vertices.Add(new LinkVertexModel(newLink, new Point(vertice.XPosition + XOffset, vertice.YPosition + YOffset)));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                Modal.Open();
+            }
+        }
+
+        /// <summary>
+        /// Search for a PortModel according to its ID and return it 
+        /// </summary>
+        /// <param name="id">Port ID to search for</param>
+        /// <returns></returns>
+        private PortModel? GetPort(string id)
+        {
+            PortModel? result = null;
+            bool found = false;
+
+            foreach (NodeModel node in Diagram.Nodes)
+            {
+                foreach (PortModel port in node.Ports)
+                {
+                    if (port.Id == id)
+                    {
+                        found = true;
+                        result = port;
+                        break;
+                    }
+                }
+                if (found)
+                {
+                    break;
+                }
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Start dragging an element from the pallette
         /// </summary>
@@ -563,6 +799,12 @@ namespace Workflow.Pages
         /// </summary>
         private void ValidateDiagram()
         {
+            if (LinkToDelete != null)
+            {
+                Diagram.Links.Remove(LinkToDelete);
+            }
+            LinkToDelete = null;
+
             int startCount = 0;
             int endCount = 0;
 
@@ -641,7 +883,7 @@ namespace Workflow.Pages
             if (multiplePortLinks)
             {
                 IsDiagramValid = false;
-                ValidationReason = ValidationReason + "&#x2022 Eack node anchor point may only have one link attached to it.<br>";
+                ValidationReason = ValidationReason + "&#x2022 Each node anchor point may only have one link attached to it.<br>";
             }
 
             // Make sure each link starts and ends at a node
