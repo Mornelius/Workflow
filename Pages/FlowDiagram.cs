@@ -17,6 +17,7 @@ using static Workflow.Structures.Enumerators;
 using Newtonsoft;
 using Newtonsoft.Json;
 using Blazor.Diagrams.Core.Anchors;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Workflow.Pages
 {
@@ -62,14 +63,17 @@ namespace Workflow.Pages
             {
                 AllowMultiSelection = true,
                 Zoom =
-            {
-                Enabled = true,
-            },
+                    {
+                        Enabled = true,
+                    },
                 Links =
-            {
-                DefaultRouter = new OrthogonalRouter(),
-                DefaultPathGenerator = new StraightPathGenerator()
-            },
+                    {
+                        RequireTarget = true,
+                        DefaultColor = "black",
+                        DefaultSelectedColor = "red",
+                        DefaultRouter = new OrthogonalRouter(),
+                        DefaultPathGenerator = new StraightPathGenerator()
+                    },
             };
 
             // Setup event handlers
@@ -80,14 +84,14 @@ namespace Workflow.Pages
             Diagram.PointerUp += Diagram_PointerUp;
             Diagram.Links.Removed += Links_Removed;
             Diagram.SelectionChanged += Diagram_SelectionChanged;
-            
+
             // We created new custom shapes - they need to be registered on the canvas before they can be used
             Diagram.RegisterComponent<StartModel, Start>();
             Diagram.RegisterComponent<EndModel, End>();
             Diagram.RegisterComponent<RectangleModel, Components.Rectangle>();
             Diagram.RegisterComponent<DiamondModel, Diamond>();
             Diagram.RegisterComponent<TriangleModel, Triangle>();
-            
+            Diagram.RegisterComponent<RedLinkModel, RedLink>();
             ZoomLevel = Diagram.Zoom;
 
             ValidateDiagram();
@@ -302,6 +306,7 @@ namespace Workflow.Pages
             obj.Router = new OrthogonalRouter();
             obj.TargetMarker = LinkMarker.Arrow;
             obj.Segmentable = true;
+
             ValidateDiagram();
         }
 
@@ -488,8 +493,8 @@ namespace Workflow.Pages
                             break;
                         case "TriangleModel":
                             TriangleModel triangleModel = node as TriangleModel;
-                            triangleModel.Properties = nodeItem ;
-                            
+                            triangleModel.Properties = nodeItem;
+
                             break;
                         default:
                             break;
@@ -501,6 +506,25 @@ namespace Workflow.Pages
             }
         }
 
+        private async Task Copy()
+        {
+            try
+            {
+                await ClipboardService.WriteTextAsync(txtOutput.Value);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        private async Task Paste()
+        {
+            Clear();
+            string text = "";
+            text = await ClipboardService.ReadTextAsync();
+        }
+        
         /// <summary>
         /// Start dragging an element from the pallette
         /// </summary>
@@ -586,6 +610,8 @@ namespace Workflow.Pages
                 }
             }
 
+            bool multiplePortLinks = false;
+
             // Check that each node is linked to at least one other
             foreach (NodeModel node in Diagram.Nodes)
             {
@@ -593,8 +619,13 @@ namespace Workflow.Pages
 
                 foreach (PortModel port in node.Ports)
                 {
+
                     if (port.Links.Count > 0)
                     {
+                        if (port.Links.Count > 1)
+                        {
+                            multiplePortLinks = true;
+                        }
                         linked++;
                     }
                 }
@@ -605,6 +636,12 @@ namespace Workflow.Pages
                     ValidationReason = ValidationReason + "&#x2022 All nodes must have at least one link.<br>";
                     break;
                 }
+            }
+
+            if (multiplePortLinks)
+            {
+                IsDiagramValid = false;
+                ValidationReason = ValidationReason + "&#x2022 Eack node anchor point may only have one link attached to it.<br>";
             }
 
             // Make sure each link starts and ends at a node

@@ -12,6 +12,7 @@ namespace Workflow
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
+            builder.Services.AddScoped<Shared.ClipboardService>();
 
             var app = builder.Build();
 

@@ -3,7 +3,7 @@
 @using Blazor.Diagrams.Components
 @using Workflow.Components
 
-@inject IJSRuntime JSRuntime
+@inject ClipboardService ClipboardService
 
 <div class="container">
     <div class="item_menu">
@@ -87,7 +87,14 @@
         <button class="btn btn-primary" @onclick="ApplyPropertyChanges">Apply</button>
     </div>
     <div class="item_output">
-        <InputTextArea class="output_display" @ref="txtOutput" @bind-Value="diagramDescription" style="width: 100%;"></InputTextArea>
+        <div class="copy_and_paste">
+            <button class="btn btn-primary" @onclick="Copy">Copy</button>
+            <button class="btn btn-primary" @onclick="Paste">Paste</button>
+            <button class="btn btn-primary" @onclick="Clear">Clear</button>
+        </div>
+        <div class="output">
+            <InputTextArea readonly class="output_display" @ref="txtOutput" @bind-Value="diagramDescription" style="width: 100%;"></InputTextArea>
+        </div>
     </div>
 </div>
 
@@ -147,6 +154,8 @@
         border-style: solid;
         border-width: 1px;
         padding: 2px;
+        display: flex;
+        flex-direction: row;
     }
 
     .element_image {
@@ -197,7 +206,18 @@
         font-weight: 400;
     }
 
+    .output{
+        width: 100%;
+    }
+
     .output_display{
         height: 100%;
+    }
+
+    .copy_and_paste{
+        display:flex; 
+        flex-direction:column;
+        row-gap: 10px;
+        padding: 5px;
     }
 </style>
